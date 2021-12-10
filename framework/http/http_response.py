@@ -16,7 +16,6 @@ class HttpResponse:
 
     def data(self):
         self._data = self._build_response()
-        print(self._data)
         return self._data
 
     def _build_response(self, receive_time=None):

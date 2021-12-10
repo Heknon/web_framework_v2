@@ -13,13 +13,6 @@ class Method:
     def __init__(self, method):
         self._method = method
 
-        """
-        inject into method "request", "response" objects with said names. "global objects" (not really)
-        
-        
-        
-        """
-
     def execute(self, request, response):
         argspec = inspect.getfullargspec(self._method)
         args_len = len(argspec.args)

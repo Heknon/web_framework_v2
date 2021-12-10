@@ -30,6 +30,7 @@ class Framework:
 
         def decorator(f):
             self.add_route(route, f, methods, content_type)
+            return f
 
         return decorator
 

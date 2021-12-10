@@ -21,6 +21,13 @@ def calculate_next(num: QueryParameter("num", int)):
 def calculate_area(height: QueryParameter("height", int), width: QueryParameter("width", int)):
     return height * width / 2
 
+
+def jwt_handler(f):
+
+    return f
+
+
+@jwt_handler
 @app.get("/test")
 def test():
     return "test"
