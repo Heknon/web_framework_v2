@@ -10,6 +10,7 @@
 .idea/**/shelf
 webroot/**
 venv/**
+.idea/**
 
 # Generated files
 .idea/**/contentModel.xml

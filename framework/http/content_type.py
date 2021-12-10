@@ -15,5 +15,5 @@ class ContentType(Enum):
     xml = "application/xml"
 
     def __str__(self):
-        return "Content-Type: " + self.value
+        return "content-type: " + self.value
 

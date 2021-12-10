@@ -12,7 +12,7 @@ app = Framework("webroot", "/index.html")
 images = {}
 
 
-@app.route("/calculate-next", {HttpMethod.GET})
+@app.route("/calculate-next", {HttpMethod.GET}, content_type=ContentType.text)
 def calculate_next(num: QueryParameter("num", int)):
     return num + 1
 
@@ -20,6 +20,10 @@ def calculate_next(num: QueryParameter("num", int)):
 @app.get("/calculate-area")
 def calculate_area(height: QueryParameter("height", int), width: QueryParameter("width", int)):
     return height * width / 2
+
+@app.get("/test")
+def test():
+    return "test"
 
 
 @app.post("/upload", content_type=ContentType.text)

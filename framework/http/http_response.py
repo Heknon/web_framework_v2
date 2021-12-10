@@ -8,7 +8,7 @@ from framework.route import Route
 
 class HttpResponse:
     def __init__(self, content_type: ContentType, http_version: str, status, html: bytes):
-        self.content_type = str(content_type.value)
+        self.content_type = str(content_type)
         self.http_version = http_version
         self.status = status
         self.html = html if html is not None else b""
@@ -16,10 +16,11 @@ class HttpResponse:
 
     def data(self):
         self._data = self._build_response()
+        print(self._data)
         return self._data
 
     def _build_response(self, receive_time=None):
-        response = f"{self.http_version} {self.status.value} {self.status.name}\r\n".encode()
+        response = f"{self.http_version.strip()} {self.status.value} {self.status.name}\r\n".encode()
         response += f"{self.content_type}\r\n".encode()
         response += self.build_header("Content-Length", len(self.html))
         if receive_time is not None:
