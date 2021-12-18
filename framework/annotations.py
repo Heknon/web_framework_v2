@@ -1,6 +1,6 @@
 import inspect
-from abc import ABC
 import json
+from abc import ABC
 
 import jsonpickle
 
@@ -29,7 +29,8 @@ class Annotation(ABC):
                 mapped_data = jsonpickle.decode(data)
                 if type(mapped_data) is dict:
                     module = self._parameter_type.__module__
-                    mapped_data["py/object"] = module + '.' + self._parameter_type.__qualname__ if module != "builtins" else self._parameter_type.__qualname__
+                    mapped_data[
+                        "py/object"] = module + '.' + self._parameter_type.__qualname__ if module != "builtins" else self._parameter_type.__qualname__
 
                 return jsonpickle.decode(json.dumps(mapped_data), classes=parameter_type)
             else:

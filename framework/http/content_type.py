@@ -16,4 +16,3 @@ class ContentType(Enum):
 
     def __str__(self):
         return "content-type: " + self.value
-

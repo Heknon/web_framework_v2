@@ -1,8 +1,8 @@
 import socket
 import threading
 
-from framework.http_client import HttpClient
 from framework.http import HttpResponse
+from framework.http_client import HttpClient
 
 
 class HttpServer:

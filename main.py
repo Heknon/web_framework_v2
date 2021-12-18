@@ -1,15 +1,11 @@
-import inspect
-import json
-
-import jsonpickle
-import jwt
-
-from framework.annotations import RequestBody, QueryParameter, PathVariable
 from framework.framework import Framework
-from framework.http import HttpMethod, HttpRequest, ContentType
-from framework.jwt import JwtSecurity, JwtTokenFactory, JwtTokenAuth
+from framework.jwt import JwtTokenFactory, JwtTokenAuth
 
 app = Framework("webroot", "/index.html")
+
+user_db = {
+    "heknon": "no"
+}
 
 
 class TokenFactory(JwtTokenFactory):
