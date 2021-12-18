@@ -2,6 +2,7 @@ from framework.http import HttpMethod, HttpRequest
 
 
 class RequestParser:
+
     def __init__(self, request: bytes):
         self.request = request
         self.length = len(self.request)

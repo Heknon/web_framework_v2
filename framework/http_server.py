@@ -3,6 +3,7 @@ import threading
 
 from framework.http import HttpResponse
 from framework.http_client import HttpClient
+from utils import timing
 
 
 class HttpServer:

@@ -33,7 +33,6 @@ class JwtTokenFactory(JwtSecurity, ABC):
 class JwtTokenAuth(JwtSecurity):
     def should_execute_endpoint(self, request, request_body) -> Tuple[bool, object]:
         try:
-            jwt.decode(request.headers["Authorization"][8:], self.secret(), algorithms=["HS256"])
-            return True, None
+            return True, jwt.decode(request.headers["Authorization"][8:], self.secret(), algorithms=["HS256"])
         except:
             return False, None
