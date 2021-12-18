@@ -2,12 +2,11 @@ import os
 import time
 import traceback
 
-from framework.http import HttpStatus, ContentType, HttpRequest
-from framework.route import Route
+from framework.http import HttpStatus, ContentType
 
 
 class HttpResponse:
-    def __init__(self, content_type: ContentType, http_version: str, status, html: bytes):
+    def __init__(self, content_type, http_version: str, status, html: bytes):
         self.content_type = str(content_type)
         self.http_version = http_version
         self.status = status
@@ -33,7 +32,7 @@ class HttpResponse:
         return f"{header}: {value}\r\n".encode()
 
     @staticmethod
-    def build_from_route(request: HttpRequest, route: Route, path_variables: dict):
+    def build_from_route(request, route, path_variables: dict):
         try:
             response = HttpResponse.build_empty_status_response(request, HttpStatus.OK, b"")
             res = route.execute(request.clone(), response, path_variables)

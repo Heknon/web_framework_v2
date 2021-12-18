@@ -2,10 +2,12 @@ import inspect
 import json
 
 import jsonpickle
+import jwt
 
 from framework.annotations import RequestBody, QueryParameter, PathVariable
 from framework.framework import Framework
 from framework.http import HttpMethod, HttpRequest, ContentType
+from framework.jwt import JwtSecurity
 
 app = Framework("webroot", "/index.html")
 
@@ -22,14 +24,11 @@ def calculate_area(height: QueryParameter("height", int), width: QueryParameter(
     return height * width / 2
 
 
-def jwt_handler(f):
-
-    return f
-
-
-@jwt_handler
 @app.get("/test")
-def test():
+@JwtSecurity.token_factory(
+
+)
+def test(req: HttpRequest):
     return "test"
 
 
@@ -45,6 +44,9 @@ def get_image(name: QueryParameter("image-name")):
 
 
 def main():
+
+    print(jwt.encode({"test": 2}, "SECRET"))
+    print(jwt.decode("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0ZXN0IjoyfQ.hUggYjfZpywfbAilywls6Pj7PKKMrWwtdCo_u0liuT5", "SECRET", algorithms=["HS256"]))
     app.start()
 
 

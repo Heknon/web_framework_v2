@@ -4,7 +4,7 @@ import json
 import jsonpickle
 
 import framework.annotations
-from framework.http import HttpRequest, ContentType
+from framework.http import HttpRequest, ContentType, HttpResponse
 
 
 class Method:
@@ -24,6 +24,7 @@ class Method:
             for i, default_value in enumerate(argspec.defaults):
                 defaults_map[argspec.args[args_len - defaults_len + i]] = default_value
 
+        print(argspec.annotations)
         if args_len > 0 and len(argspec.annotations) > 0:
             for parameter_name, annotation in argspec.annotations.items():
                 if issubclass(type(annotation), framework.annotations.Annotation):
@@ -34,8 +35,8 @@ class Method:
                     if annotation is HttpRequest or type(annotation) is HttpRequest:
                         kwargs[parameter_name] = request
                         defaults_map.pop(parameter_name)
-                    elif annotation is HttpRequest or type(annotation) is HttpRequest:
-                        kwargs[parameter_name] = request
+                    elif annotation is HttpResponse or type(annotation) is HttpResponse:
+                        kwargs[parameter_name] = response
                         defaults_map.pop(parameter_name)
 
         if defaults_len > 0:
@@ -45,5 +46,6 @@ class Method:
 
                 kwargs[parameter_name] = default_value
 
+        print(kwargs)
         method_result = self._method(**kwargs)
         return jsonpickle.encode(method_result, unpicklable=False) if response.content_type in self.encodable_content_types else method_result
