@@ -7,8 +7,11 @@ class Decorator(ABC):
     Decorate a route to change it's pre-execution functionality
     """
 
-    def should_execute_endpoint(self, request) -> Tuple[bool, object]:
+    def should_execute_endpoint(self, request, request_body) -> Tuple[bool, object]:
         raise NotImplementedError(f"Must implement should_execute_route() in {type(self)}")
+
+    def on_fail(self, request, response):
+        pass
 
     def __call__(self, fun):
         decorators = getattr(fun, "decorators", [])

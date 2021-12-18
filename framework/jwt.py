@@ -1,45 +1,40 @@
+import time
+from abc import ABC
+from datetime import datetime, timezone
+from typing import Tuple
+
 import jwt
 
+from framework.decorator import Decorator
 
-class JwtSecurity:
-    SECRET = "secret_key"
 
-    @staticmethod
-    def token_factory():
-        def decorator(fun):
-            setattr(fun, "jwt_security_factory", {
-                "create_token": JwtSecurity.create_token
-            })
-            return fun
+class JwtSecurity(Decorator, ABC):
+    def __init__(self, on_fail=lambda request, response: None):
+        self._secret = "secret_key_temporary"
+        self.on_fail = on_fail
 
-        return decorator
+    def secret(self):
+        return self._secret
 
-    @staticmethod
-    def create_token(request):
-        # DB VERIFY
-        return jwt.encode({
-            "username": request.body.username
-        }, JwtSecurity.SECRET)
 
-    @staticmethod
-    def token_auth(check_blacklist: bool):
-        def decorator(fun):
-            setattr(fun, "jwt_security_factory", {
-                "authenticate_token": JwtSecurity.authenticate_token,
-                "check_blacklist": JwtSecurity.check_blacklist if check_blacklist else None
-            })
-            return fun
+class JwtTokenFactory(JwtSecurity, ABC):
+    def should_execute_endpoint(self, request, request_body) -> Tuple[bool, object]:
+        if not self.verify_request(request, request_body):
+            return False, None
 
-        return decorator
+        return True, jwt.encode({
+            "username": request_body["username"].lower(),
+            "exp": datetime.now(tz=timezone.utc).timestamp() + 60 * 30
+        }, self.secret())
 
-    @staticmethod
-    def authenticate_token(request):
+    def verify_request(self, request, request_body) -> bool:
+        raise NotImplementedError(f"Must implement request verification for {type(self)}!")
+
+
+class JwtTokenAuth(JwtSecurity):
+    def should_execute_endpoint(self, request, request_body) -> Tuple[bool, object]:
         try:
-            jwt.decode(request.headers["Authorization"][7:], JwtSecurity.SECRET, algorithms=["HS256"])
-            return True
+            jwt.decode(request.headers["Authorization"][8:], self.secret(), algorithms=["HS256"])
+            return True, None
         except:
-            return False
-
-    @staticmethod
-    def check_blacklist() -> bool:
-        return None
+            return False, None

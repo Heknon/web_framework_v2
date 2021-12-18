@@ -31,11 +31,12 @@ class Method:
             decorators = getattr(self._method, "decorators", [])
 
             for decorator in decorators:
-                should_exec, result = decorator.should_execute_endpoint(request)
+                should_exec, result = decorator.should_execute_endpoint(request, framework.annotations.RequestBody().value_generator(request))
                 if not should_exec:
-                    return
+                    return decorator.on_fail(request, response)
 
-                decorator_result_map[decorator] = result  # Used when building kwargs to set result based on annotation
+                if result is not None:
+                    decorator_result_map[type(decorator)] = result  # Used when building kwargs to set result based on annotation
 
         # Build kwargs
         if args_len > 0 and len(argspec.annotations) > 0:
@@ -47,13 +48,13 @@ class Method:
                 else:
                     if annotation is HttpRequest or type(annotation) is HttpRequest:
                         kwargs[parameter_name] = request
-                        defaults_map.pop(parameter_name)
+                        defaults_map.pop(parameter_name, None)
                     elif annotation is HttpResponse or type(annotation) is HttpResponse:
                         kwargs[parameter_name] = response
-                        defaults_map.pop(parameter_name)
+                        defaults_map.pop(parameter_name, None)
                     elif annotation in decorator_result_map:
                         kwargs[parameter_name] = decorator_result_map[annotation]
-                        defaults_map.pop(parameter_name)
+                        defaults_map.pop(parameter_name, None)
 
         # Build defaults
         if defaults_len > 0:
