@@ -1,2 +1,2 @@
-from .route import Route
-from .route_map import RouteMap
+from .endpoint import Endpoint
+from .endpoint_map import EndpointMap

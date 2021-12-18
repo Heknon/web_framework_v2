@@ -1,7 +1,7 @@
 import unittest
 
 from framework.http import HttpMethod
-from framework.route import Route
+from framework.route import Endpoint
 
 
 class RouteMatching(unittest.TestCase):
@@ -58,7 +58,7 @@ class RouteMatching(unittest.TestCase):
         "softBaLl/player/HeKNon/score/",
         "/softBaLl/player/HeKNon/score/",
     ]
-    routes = [Route(route, HttpMethod.GET, None) for route in mock_routes]
+    routes = [Endpoint(route, HttpMethod.GET, None) for route in mock_routes]
 
     def test_route_matching(self):
         for (i, route) in enumerate(self.routes):

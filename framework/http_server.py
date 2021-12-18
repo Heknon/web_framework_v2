@@ -27,7 +27,7 @@ class HttpServer:
         self.shutdown()
 
     def response_builder(self, request):
-        route, path_variables = self._framework.get_route(request)
+        route, path_variables = self._framework.get_endpoint(request)
 
         if route is not None:
             return HttpResponse.build_from_route(request, route, path_variables)

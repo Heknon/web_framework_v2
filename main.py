@@ -14,7 +14,7 @@ app = Framework("webroot", "/index.html")
 images = {}
 
 
-@app.route("/calculate-next", {HttpMethod.GET}, content_type=ContentType.text)
+@app.endpoint("/calculate-next", {HttpMethod.GET}, content_type=ContentType.text)
 def calculate_next(num: QueryParameter("num", int)):
     return num + 1
 

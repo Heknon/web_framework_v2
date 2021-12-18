@@ -4,7 +4,7 @@ from framework.http import HttpMethod, ContentType, HttpRequest
 from framework.method import Method
 
 
-class Route:
+class Endpoint:
     VARIABLE_MATCHER = re.compile(r"({.+?})")
     SLASH_EXTRACTOR = re.compile(r"/?([^/]+)/?")
 
