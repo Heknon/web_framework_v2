@@ -19,12 +19,25 @@ class Method:
         defaults_len = len(argspec.defaults) if argspec.defaults is not None else 0
         kwargs = dict()
         defaults_map = dict()
+        decorator_result_map = dict()
 
+        # Build defaults map
         if defaults_len > 0:
             for i, default_value in enumerate(argspec.defaults):
                 defaults_map[argspec.args[args_len - defaults_len + i]] = default_value
 
-        print(argspec.annotations)
+        # Execute decorator functionality
+        if hasattr(self._method, "decorators"):
+            decorators = getattr(self._method, "decorators", [])
+
+            for decorator in decorators:
+                should_exec, result = decorator.should_execute_endpoint(request)
+                if not should_exec:
+                    return
+
+                decorator_result_map[decorator] = result  # Used when building kwargs to set result based on annotation
+
+        # Build kwargs
         if args_len > 0 and len(argspec.annotations) > 0:
             for parameter_name, annotation in argspec.annotations.items():
                 if issubclass(type(annotation), framework.annotations.Annotation):
@@ -38,7 +51,11 @@ class Method:
                     elif annotation is HttpResponse or type(annotation) is HttpResponse:
                         kwargs[parameter_name] = response
                         defaults_map.pop(parameter_name)
+                    elif annotation in decorator_result_map:
+                        kwargs[parameter_name] = decorator_result_map[annotation]
+                        defaults_map.pop(parameter_name)
 
+        # Build defaults
         if defaults_len > 0:
             for parameter_name, default_value in defaults_map.items():
                 if parameter_name in kwargs:
@@ -46,6 +63,5 @@ class Method:
 
                 kwargs[parameter_name] = default_value
 
-        print(kwargs)
         method_result = self._method(**kwargs)
         return jsonpickle.encode(method_result, unpicklable=False) if response.content_type in self.encodable_content_types else method_result
