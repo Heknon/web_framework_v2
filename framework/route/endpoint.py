@@ -8,7 +8,7 @@ class Endpoint:
     VARIABLE_MATCHER = re.compile(r"({.+?})")
     SLASH_EXTRACTOR = re.compile(r"/?([^/]+)/?")
 
-    def __init__(self, route: str, http_method: HttpMethod, content_type: ContentType, func):
+    def __init__(self, route: str, http_method: HttpMethod, content_type: ContentType, func, match_headers: dict):
         if len(route) == 0:
             route = "/"
 
@@ -19,6 +19,7 @@ class Endpoint:
         self._http_method = http_method
         self._content_type = content_type
         self._func = func
+        self._match_headers = match_headers
         self._method = Method(self._func)
 
         self._variable_table = {i.group(): i.span() for i in self.VARIABLE_MATCHER.finditer(self._route)}
@@ -28,6 +29,21 @@ class Endpoint:
     def execute(self, request: HttpRequest, response, path_variables):
         request.path_variables = path_variables
         return self._method.execute(request, response)
+
+    def matches_headers(self, request: HttpRequest):
+        if self._match_headers is None or len(self._match_headers) == 0:
+            return True
+
+        request_headers = request.headers
+        matches = True
+
+        for header, value in self._match_headers.items():
+            matches = header in request_headers and request_headers[header] == value
+
+            if not matches:
+                break
+
+        return matches
 
     def matches_url(self, url):
         if not self.has_route_variables():

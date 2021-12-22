@@ -18,6 +18,6 @@ def register(token_factory_result: TokenFactory):
 
 
 @JwtTokenAuth(on_fail=on_fail)
-@app.post("/test")
+@app.get("/test", match_headers={"Host": "business_name.localhost"})
 def test(token: JwtTokenAuth):
     return token

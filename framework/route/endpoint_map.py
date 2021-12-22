@@ -1,26 +1,29 @@
 from __future__ import annotations
 
-from framework.http import HttpMethod
 from . import Endpoint
+from .. import HttpRequest
 
 
 class EndpointMap:
     def __init__(self):
         self._method_routes_map = {}  # HttpMethod: {route_str: Route}
 
-    def get_endpoint(self, url: str, method: HttpMethod) -> tuple[Endpoint | None, str | None] | None:
-        endpoint_obj = self._method_routes_map.get(method, {}).get(url, None)
+    def get_endpoint(self, request: HttpRequest) -> tuple[Endpoint | None, str | None] | None:
+        endpoint_obj = self._method_routes_map.get(request.method, {}).get(request.url, None)
 
         if endpoint_obj is None:
-            method_routes = self._method_routes_map.get(method, None)
+            method_routes = self._method_routes_map.get(request.method, None)
 
             if method_routes is None:
-                return endpoint_obj, None
+                return None, None
 
             for route in method_routes.values():
-                matches, variable_map = route.matches_url(url)
-                if matches:
+                matches, variable_map = route.matches_url(request.url)
+                if matches and route.matches_headers(request):
                     return route, variable_map
+
+        if endpoint_obj is not None and not endpoint_obj.matches_headers(request):
+            return None, None
 
         return endpoint_obj, None
 
