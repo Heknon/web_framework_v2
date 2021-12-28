@@ -11,6 +11,7 @@
 webroot/**
 venv/**
 .idea/**
+backend/**
 
 # Generated files
 .idea/**/contentModel.xml

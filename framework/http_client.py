@@ -13,6 +13,7 @@ class HttpClient:
         self.response_receive_time = 0
         self.is_closed = False
         self.response_handler_thread = threading.Thread(target=self.request_handler)
+        self.byte_fetch_amount = 2048
 
     def start(self):
         self.response_handler_thread.start()
@@ -26,16 +27,13 @@ class HttpClient:
 
     def request_handler(self):
         while not self.is_closed:
-            data: bytes = self.socket.recv(200)
+            data: bytes = self.socket.recv(self.byte_fetch_amount)
             curr_data_buffer = data
-            last_200 = False
-            while len(curr_data_buffer) == 200 and not last_200:
-                last_200 = len(self.socket.recv(201, socket.MSG_PEEK)) <= 200  # prevent blocking if next cycle has exactly 200
-                curr_data_buffer = self.socket.recv(200)
+            last_bytes = False
+            while len(curr_data_buffer) == self.byte_fetch_amount and not last_bytes:
+                last_bytes = len(self.socket.recv(self.byte_fetch_amount + 1, socket.MSG_PEEK)) <= self.byte_fetch_amount  # prevent blocking if cycle equals fetch amount
+                curr_data_buffer = self.socket.recv(self.byte_fetch_amount)
                 data += curr_data_buffer
-
-            if len(data) < 12:
-                continue
 
             request = RequestParser(data).parse()
             response = self.response_builder(request)
