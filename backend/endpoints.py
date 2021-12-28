@@ -40,4 +40,5 @@ def upload_image(name: QueryParameter("file-name"), data: RequestBody(raw_format
 
 @app.get("/image", content_type=ContentType.jpg)
 def get_image(name: QueryParameter("image-name")):
+    print("test")
     return images[name]

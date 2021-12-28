@@ -1,12 +1,13 @@
 import socket
+import ssl
 import threading
-import time
 
 from framework.parser import RequestParser
 
 
 class HttpClient:
     def __init__(self, client_socket: socket.socket, address, response_builder):
+
         self.socket = client_socket
         self.address = address
         self.response_builder = response_builder
@@ -23,7 +24,7 @@ class HttpClient:
         exit()
 
     def send(self, data: bytes):
-        self.socket.send(data)
+        self.socket.sendall(data)
 
     def request_handler(self):
         while not self.is_closed:
@@ -31,7 +32,8 @@ class HttpClient:
             curr_data_buffer = data
             last_bytes = False
             while len(curr_data_buffer) == self.byte_fetch_amount and not last_bytes:
-                last_bytes = len(self.socket.recv(self.byte_fetch_amount + 1, socket.MSG_PEEK)) <= self.byte_fetch_amount  # prevent blocking if cycle equals fetch amount
+                last_bytes = len(self.socket.recv(self.byte_fetch_amount + 1,
+                                                  socket.MSG_PEEK)) <= self.byte_fetch_amount  # prevent blocking if cycle equals fetch amount
                 curr_data_buffer = self.socket.recv(self.byte_fetch_amount)
                 data += curr_data_buffer
 
