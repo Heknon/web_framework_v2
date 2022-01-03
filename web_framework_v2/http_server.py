@@ -4,8 +4,6 @@ import threading
 
 from web_framework_v2.http import HttpResponse
 from web_framework_v2.http_client import HttpClient
-from utils import timing
-
 
 class HttpServer:
     def __init__(self, framework):
