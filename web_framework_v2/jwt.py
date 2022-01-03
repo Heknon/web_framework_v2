@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
 import time
->>>>>>> 0188415 (implemented JWT using decorator system & tested)
 from abc import ABC
 from datetime import datetime, timezone
 from typing import Tuple
@@ -13,13 +10,11 @@ from web_framework_v2.decorator import Decorator
 
 class JwtSecurity(Decorator, ABC):
     def __init__(self, on_fail=lambda request, response: None):
-<<<<<<< HEAD
         """
         Base class of JWT security
         :param on_fail: called when security check fails.
         """
-=======
->>>>>>> 0188415 (implemented JWT using decorator system & tested)
+
         self._secret = "secret_key_temporary"
         self.on_fail = on_fail
 
@@ -44,11 +39,6 @@ class JwtTokenFactory(JwtSecurity, ABC):
 class JwtTokenAuth(JwtSecurity):
     def should_execute_endpoint(self, request, request_body) -> Tuple[bool, object]:
         try:
-<<<<<<< HEAD
             return True, jwt.decode(request.headers["Authorization"][8:], self.secret(), algorithms=["HS256"])
-=======
-            jwt.decode(request.headers["Authorization"][8:], self.secret(), algorithms=["HS256"])
-            return True, None
->>>>>>> 0188415 (implemented JWT using decorator system & tested)
         except:
             return False, None
