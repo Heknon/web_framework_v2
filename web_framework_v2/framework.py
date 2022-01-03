@@ -1,8 +1,8 @@
-from framework.http import HttpRequest, ContentType
-from framework.http.http_method import HttpMethod
-from framework.http_server import HttpServer
-from framework.route import Endpoint
-from framework.route.endpoint_map import EndpointMap
+from web_framework_v2.http import HttpRequest, ContentType
+from web_framework_v2.http.http_method import HttpMethod
+from web_framework_v2.http_server import HttpServer
+from web_framework_v2.route import Endpoint
+from web_framework_v2.route.endpoint_map import EndpointMap
 
 
 class Framework:

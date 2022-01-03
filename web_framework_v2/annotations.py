@@ -4,7 +4,7 @@ from abc import ABC
 
 import jsonpickle
 
-from framework.http import HttpRequest
+from web_framework_v2.http import HttpRequest
 
 
 class Annotation(ABC):
@@ -12,7 +12,7 @@ class Annotation(ABC):
         """
         An annotation is what precedes the parameter name.
         method(self, parameter: annotation).
-        this class is meant to be a base class for all custom annotations in the framework.
+        this class is meant to be a base class for all custom annotations in the web_framework_v2.
 
         :param parameter_type: the type of the parameter. the data the annotation supplies will try to be converted to this type.
         """

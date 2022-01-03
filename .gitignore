@@ -9,6 +9,7 @@
 .idea/**/dictionaries
 .idea/**/shelf
 webroot/**
+backend/**
 venv/**
 .idea/**
 

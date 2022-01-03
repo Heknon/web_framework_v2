@@ -1,7 +1,7 @@
 import unittest
 
-from framework.http import HttpMethod
-from framework.route import Endpoint
+from web_framework_v2.http import HttpMethod
+from web_framework_v2.route import Endpoint
 
 
 class RouteMatching(unittest.TestCase):

@@ -1,24 +1,14 @@
 import re
 
-from framework.http_method import HttpMethod
-from framework.method import Method
+from web_framework_v2.http import HttpMethod, ContentType, HttpRequest
+from web_framework_v2.method import Method
 
 
-class Route:
-    VARIABLE_MATCHER = re.compile(r"({.+?})")  # Matches PathVariables. Matches string in url encased in {}
-    SLASH_EXTRACTOR = re.compile(r"/?([^/]+)/?")  # extracts the strings between "/" separators in url
+class Endpoint:
+    VARIABLE_MATCHER = re.compile(r"({.+?})")
+    SLASH_EXTRACTOR = re.compile(r"/?([^/]+)/?")
 
-    def __init__(self, route: str, http_method: HttpMethod, func):
-        """
-        Every route in the framework has a specified route class which manages
-        the matching of a url to a function.
-
-        Firstly fixes the route url passed in into a standard url format for the framework
-        which starts with a "/" and ends with a "/". if empty string then set to "/".
-        :param route: the path of the function
-        :param http_method: the method to access the route
-        :param func: the function called
-        """
+    def __init__(self, route: str, http_method: HttpMethod, content_type: ContentType, func, match_headers: dict):
         if len(route) == 0:
             route = "/"
 
@@ -27,23 +17,39 @@ class Route:
 
         self._route = route
         self._http_method = http_method
+        self._content_type = content_type
         self._func = func
+        self._match_headers = match_headers
         self._method = Method(self._func)
 
         self._variable_table = {i.group(): i.span() for i in self.VARIABLE_MATCHER.finditer(self._route)}
         self._route_contains_variables = len(self._variable_table) > 0
         self._route_slashes = self.SLASH_EXTRACTOR.findall(self._route)
 
-    def matches_url(self, url):
-        """
-        Checks if a url matches the route.
-        :param url: the url to check if it matches
-        :return: True | False (Whether matches or not), path_variables | None (If there are any path variables, returns extracted)
-        """
+    def execute(self, request: HttpRequest, response, path_variables):
+        request.path_variables = path_variables
+        return self._method.execute(request, response)
 
+    def matches_headers(self, request: HttpRequest):
+        if self._match_headers is None or len(self._match_headers) == 0:
+            return True
+
+        request_headers = request.headers
+        matches = True
+
+        for header, value in self._match_headers.items():
+            matches = header in request_headers and request_headers[header] == value
+
+            if not matches:
+                break
+
+        return matches
+
+    def matches_url(self, url):
         if not self.has_route_variables():
             url = url if url[-1] == "/" else url + "/"
-            return url == self._route
+            url = url if url[0] == "/" else "/" + url
+            return url == self._route, None
 
         variable_values = {}
         url_slashes = self.SLASH_EXTRACTOR.findall(url)
@@ -68,3 +74,9 @@ class Route:
 
     def method(self):
         return self._http_method
+
+    def content_type(self):
+        return self._content_type
+
+    def __str__(self):
+        return f"Route(url: {self.route()})"

@@ -1,4 +1,4 @@
-from framework.http import HttpMethod, HttpRequest
+from web_framework_v2.http import HttpMethod, HttpRequest
 
 
 class RequestParser:

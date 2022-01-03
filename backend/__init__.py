@@ -1,4 +1,4 @@
-from framework.framework import Framework
+from web_framework_v2.framework import Framework
 
 app = Framework("webroot", "/index.html")
 

@@ -1,8 +1,8 @@
 from backend import app
 from backend.token_factory import TokenFactory
-from framework import RequestBody, QueryParameter, ContentType
-from framework.http import HttpStatus
-from framework.jwt import JwtTokenAuth
+from web_framework_v2 import RequestBody, QueryParameter, ContentType
+from web_framework_v2.http import HttpStatus
+from web_framework_v2.jwt import JwtTokenAuth
 
 
 def on_fail(req, res):

@@ -1,11 +1,11 @@
-from framework.http_method import HttpMethod
-from framework.route import Route
+from web_framework_v2.http_method import HttpMethod
+from web_framework_v2.route import Route
 
 
 class RouteMap:
     def __init__(self):
         """
-        Manages framework routes.
+        Manages web_framework_v2 routes.
         Tracks the creation of routes
         Safely gets routes from the map
         """

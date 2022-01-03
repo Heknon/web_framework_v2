@@ -1,4 +1,4 @@
-from framework.jwt import JwtTokenFactory
+from web_framework_v2.jwt import JwtTokenFactory
 
 user_db = {
     "heknon": "no"

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from framework.http import HttpMethod
+from web_framework_v2.http import HttpMethod
 from . import Route
 
 

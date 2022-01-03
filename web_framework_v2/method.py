@@ -2,8 +2,8 @@ import inspect
 
 import jsonpickle
 
-import framework.annotations
-from framework.http import HttpRequest, ContentType, HttpResponse
+import web_framework_v2.annotations
+from web_framework_v2.http import HttpRequest, ContentType, HttpResponse
 
 
 class Method:
@@ -11,7 +11,7 @@ class Method:
 
     def __init__(self, method):
         """
-        Wraps a framework function that has a route into a class that handles
+        Wraps a web_framework_v2 function that has a route into a class that handles
         the execution of the function.
         :param method: the function
         """
@@ -35,7 +35,7 @@ class Method:
             decorators = getattr(self._method, "decorators", [])
 
             for decorator in decorators:
-                should_exec, result = decorator.should_execute_endpoint(request, framework.annotations.RequestBody().value_generator(request))
+                should_exec, result = decorator.should_execute_endpoint(request, web_framework_v2.annotations.RequestBody().value_generator(request))
                 if not should_exec:
                     return decorator.on_fail(request, response)
 
@@ -45,7 +45,7 @@ class Method:
         # Build kwargs
         if args_len > 0 and len(argspec.annotations) > 0:
             for parameter_name, annotation in argspec.annotations.items():
-                if issubclass(type(annotation), framework.annotations.Annotation):
+                if issubclass(type(annotation), web_framework_v2.annotations.Annotation):
                     kwargs[parameter_name] = annotation.value_generator(request)
                     if kwargs[parameter_name] is None and parameter_name in defaults_map:
                         kwargs[parameter_name] = defaults_map[parameter_name]

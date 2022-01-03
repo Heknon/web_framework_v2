@@ -2,8 +2,8 @@ import socket
 import ssl
 import threading
 
-from framework.http import HttpResponse
-from framework.http_client import HttpClient
+from web_framework_v2.http import HttpResponse
+from web_framework_v2.http_client import HttpClient
 from utils import timing
 
 

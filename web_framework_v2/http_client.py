@@ -2,7 +2,7 @@ import socket
 import ssl
 import threading
 
-from framework.parser import RequestParser
+from web_framework_v2.parser import RequestParser
 
 
 class HttpClient:

@@ -2,7 +2,7 @@ import os
 import time
 import traceback
 
-from framework.http import HttpStatus, ContentType
+from web_framework_v2.http import HttpStatus, ContentType
 
 
 class HttpResponse:
