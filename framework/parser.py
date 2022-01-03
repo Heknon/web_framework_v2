@@ -2,8 +2,12 @@ from framework.http import HttpMethod, HttpRequest
 
 
 class RequestParser:
-
     def __init__(self, request: bytes):
+        """
+        Efficiently parses a request into a HttpRequest object.
+        :param request: the HTTP request received from the browser
+        """
+
         self.request = request
         self.length = len(self.request)
         self.cursor = 0

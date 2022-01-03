@@ -9,6 +9,10 @@ from framework.decorator import Decorator
 
 class JwtSecurity(Decorator, ABC):
     def __init__(self, on_fail=lambda request, response: None):
+        """
+        Base class of JWT security
+        :param on_fail: called when security check fails.
+        """
         self._secret = "secret_key_temporary"
         self.on_fail = on_fail
 

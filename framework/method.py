@@ -10,6 +10,11 @@ class Method:
     encodable_content_types = [ContentType.json, ContentType.text]
 
     def __init__(self, method):
+        """
+        Wraps a framework function that has a route into a class that handles
+        the execution of the function.
+        :param method: the function
+        """
         self._method = method
 
     def execute(self, request, response):
