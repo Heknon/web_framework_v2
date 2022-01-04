@@ -35,9 +35,9 @@ class Method:
             decorators = getattr(self._method, "decorators", [])
 
             for decorator in decorators:
-                should_exec, result = decorator.should_execute_endpoint(request, web_framework_v2.annotations.RequestBody().value_generator(request))
+                should_exec, result, data = decorator.should_execute_endpoint(request, web_framework_v2.annotations.RequestBody().value_generator(request))
                 if not should_exec:
-                    return decorator.on_fail(request, response)
+                    return decorator.on_fail(request, response, data)
 
                 if result is not None:
                     decorator_result_map[type(decorator)] = result  # Used when building kwargs to set result based on annotation

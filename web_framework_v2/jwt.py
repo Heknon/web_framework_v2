@@ -49,16 +49,17 @@ class JwtTokenFactory(JwtSecurity, ABC):
         super().__init__(on_fail=on_fail, allow_access_on_error=allow_access_on_error)
         self.expiration_time = expiration_time
 
-    def should_execute_endpoint(self, request, request_body) -> Tuple[bool, object]:
-        if not self.authenticate(request, request_body):
-            return False, None
+    def should_execute_endpoint(self, request, request_body) -> Tuple[bool, object, object]:
+        authentication_result, fail_data = self.authenticate(request, request_body)
+        if not authentication_result:
+            return False, None, fail_data
 
-        return True, JwtSecurity.create_token(self.token_data_builder(request, request_body), self.expiration_time)
+        return True, JwtSecurity.create_token(self.token_data_builder(request, request_body), self.expiration_time), None
 
     def token_data_builder(self, request, request_body):
         raise NotImplementedError(f"Must implement token data builder for {type(self)}!")
 
-    def authenticate(self, request, request_body) -> bool:
+    def authenticate(self, request, request_body) -> (bool, object):
         raise NotImplementedError(f"Must implement request authentication for {type(self)}!")
 
 
@@ -67,14 +68,15 @@ class JwtTokenAuth(JwtSecurity, ABC):
     Allows access and authenticates using a pre-existing token.
     """
 
-    def should_execute_endpoint(self, request, request_body) -> Tuple[bool, object]:
+    def should_execute_endpoint(self, request, request_body) -> Tuple[bool, object, object]:
+        authentication_result, fail_data = self.authenticate(request, request_body)
         try:
-            return self.authenticate(request, request_body), JwtSecurity.decode_request(request)
+            return authentication_result, JwtSecurity.decode_request(request), fail_data
         except:
             try:
-                return self.authenticate(request, request_body), None
+                return self.authenticate(request, request_body), None, fail_data
             except:
-                return self.allow_access_on_error, None
+                return self.allow_access_on_error, None, fail_data
 
-    def authenticate(self, request, request_body):
+    def authenticate(self, request, request_body) -> (bool, object):
         raise NotImplementedError(f"Must implement authentication for {type(self)}!")
