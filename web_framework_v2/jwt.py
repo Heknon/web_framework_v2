@@ -4,41 +4,73 @@ from datetime import datetime, timezone
 from typing import Tuple
 
 import jwt
-
 from web_framework_v2.decorator import Decorator
 
 
 class JwtSecurity(Decorator, ABC):
-    def __init__(self, on_fail=lambda request, response: None):
+    _SECRET = "secret_key_temporary"
+
+    def __init__(self, on_fail=lambda request, response: None, allow_access_on_error=False):
         """
         Base class of JWT security
         :param on_fail: called when security check fails.
         """
-
-        self._secret = "secret_key_temporary"
         self.on_fail = on_fail
+        self.allow_access_on_error = allow_access_on_error
 
-    def secret(self):
-        return self._secret
+    @staticmethod
+    def secret():
+        return JwtSecurity._SECRET
+
+    @staticmethod
+    def decode_token(token):
+        return jwt.decode(token, JwtSecurity.secret(), algorithms=["HS256"])
+
+    @staticmethod
+    def decode_request(request):
+        return jwt.decode(request.headers["Authorization"][8:], JwtSecurity.secret(), algorithms=["HS256"])
+
+    @staticmethod
+    def create_token(self, data, expiration_seconds: int):
+        data["exp"] = datetime.now(tz=timezone.utc).timestamp() + expiration_seconds
+        return jwt.encode(data, JwtSecurity.secret())
 
 
 class JwtTokenFactory(JwtSecurity, ABC):
+    """
+    Authenticates and creates a new token using request and request body
+    """
+
+    def __init__(self, on_fail=lambda request, response: None, allow_access_on_error=False, expiration_time=60 * 30):
+        super().__init__(on_fail=on_fail, allow_access_on_error=allow_access_on_error)
+        self.expiration_time = expiration_time
+
     def should_execute_endpoint(self, request, request_body) -> Tuple[bool, object]:
-        if not self.verify_request(request, request_body):
+        if not self.authenticate(request, request_body):
             return False, None
 
-        return True, jwt.encode({
-            "username": request_body["username"].lower(),
-            "exp": datetime.now(tz=timezone.utc).timestamp() + 60 * 30
-        }, self.secret())
+        return True, JwtSecurity.create_token(self.token_data_builder(request, request_body), self.expiration_time)
 
-    def verify_request(self, request, request_body) -> bool:
-        raise NotImplementedError(f"Must implement request verification for {type(self)}!")
+    def token_data_builder(self, request, request_body):
+        raise NotImplementedError(f"Must implement token data builder for {type(self)}!")
+
+    def authenticate(self, request, request_body) -> bool:
+        raise NotImplementedError(f"Must implement request authentication for {type(self)}!")
 
 
-class JwtTokenAuth(JwtSecurity):
+class JwtTokenAuth(JwtSecurity, ABC):
+    """
+    Allows access and authenticates using a pre-existing token.
+    """
+
     def should_execute_endpoint(self, request, request_body) -> Tuple[bool, object]:
         try:
-            return True, jwt.decode(request.headers["Authorization"][8:], self.secret(), algorithms=["HS256"])
+            return self.authenticate(request, request_body), JwtSecurity.decode_request(request)
         except:
-            return False, None
+            try:
+                return self.authenticate(request, request_body), None
+            except:
+                return self.allow_access_on_error, None
+
+    def authenticate(self, request, request_body):
+        raise NotImplementedError(f"Must implement authentication for {type(self)}!")

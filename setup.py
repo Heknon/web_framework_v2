@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
   name = 'web_framework_v2',         # How you named your package folder (MyLib)
   packages = ['web_framework_v2', "web_framework_v2.http", "web_framework_v2.route"],   # Chose the same as "name"
-  version = '0.4',      # Start with a small number and increase it with every change you make
+  version = '0.5',      # Start with a small number and increase it with every change you make
   license='MIT',        # Chose a license from here: https://help.github.com/articles/licensing-a-repository
   description = 'Web framework for personal use',   # Give a short description about your library
   author = 'Ori Harel',                   # Type in your name
