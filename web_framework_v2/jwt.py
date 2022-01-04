@@ -23,6 +23,10 @@ class JwtSecurity(Decorator, ABC):
         return JwtSecurity._SECRET
 
     @staticmethod
+    def set_secret(secret):
+        JwtSecurity._SECRET = secret
+
+    @staticmethod
     def decode_token(token):
         return jwt.decode(token, JwtSecurity.secret(), algorithms=["HS256"])
 
