@@ -56,9 +56,9 @@ class JwtTokenFactory(JwtSecurity, ABC):
         if not authentication_result:
             return False, None, fail_data
 
-        return True, JwtSecurity.create_token(self.token_data_builder(request, request_body), self.expiration_time), None
+        return True, JwtSecurity.create_token(self.token_data_builder(request, request_body, fail_data), self.expiration_time), None
 
-    def token_data_builder(self, request, request_body):
+    def token_data_builder(self, request, request_body, data):
         raise NotImplementedError(f"Must implement token data builder for {type(self)}!")
 
     def authenticate(self, request, request_body) -> (bool, object):
