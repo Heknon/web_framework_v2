@@ -74,7 +74,10 @@ class JwtTokenAuth(JwtSecurity, ABC):
         decoded_token = JwtSecurity.decode_request(request)
         authentication_result, fail_data = self.authenticate(request, request_body, decoded_token)
 
-        return authentication_result, decoded_token, fail_data
+        return authentication_result, self.decoded_token_transformer(request, request_body, decoded_token), fail_data
 
     def authenticate(self, request, request_body, decoded_token) -> (bool, object):
         raise NotImplementedError(f"Must implement authentication for {type(self)}!")
+
+    def decoded_token_transformer(self, request, request_body, decoded_token) -> (bool, object):
+        raise NotImplementedError(f"Must implement decoded_token_transformer for {type(self)}!")
