@@ -52,11 +52,11 @@ class JwtTokenFactory(JwtSecurity, ABC):
         self.expiration_time = expiration_time
 
     def should_execute_endpoint(self, request, request_body) -> Tuple[bool, object, object]:
-        authentication_result, fail_data = self.authenticate(request, request_body)
+        authentication_result, authentication_data, builder_data = self.authenticate(request, request_body)
         if not authentication_result:
-            return False, None, fail_data
+            return False, None, authentication_data
 
-        return True, JwtSecurity.create_token(self.token_data_builder(request, request_body, fail_data), self.expiration_time), None
+        return True, JwtSecurity.create_token(self.token_data_builder(request, request_body, builder_data), self.expiration_time), authentication_data
 
     def token_data_builder(self, request, request_body, data):
         raise NotImplementedError(f"Must implement token data builder for {type(self)}!")
@@ -72,9 +72,9 @@ class JwtTokenAuth(JwtSecurity, ABC):
 
     def should_execute_endpoint(self, request, request_body) -> Tuple[bool, object, object]:
         decoded_token = JwtSecurity.decode_request(request)
-        authentication_result, fail_data = self.authenticate(request, request_body, decoded_token)
+        authentication_result, authentication_data = self.authenticate(request, request_body, decoded_token)
 
-        return authentication_result, self.decoded_token_transformer(request, request_body, decoded_token), fail_data
+        return authentication_result, self.decoded_token_transformer(request, request_body, decoded_token), authentication_data
 
     def authenticate(self, request, request_body, decoded_token) -> (bool, object):
         raise NotImplementedError(f"Must implement authentication for {type(self)}!")
