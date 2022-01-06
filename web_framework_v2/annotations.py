@@ -59,12 +59,16 @@ class QueryParameter(Annotation):
 
     def value_generator(self, request: http_request.HttpRequest):
         value = request.query_parameters.get(self.query_name, None) if request.query_parameters is not None else None
+
+        if value is None:
+            return None
+
         value = value if len(value) > 1 else value[0]
 
         return self.adapt(
             value,
             self._parameter_type
-        ) if value is not None else None
+        )
 
 
 class RequestBody(Annotation):
