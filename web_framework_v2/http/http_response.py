@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+import traceback
 
 import web_framework_v2.route.endpoint as endpoint
 from web_framework_v2.http import HttpStatus, ContentType
@@ -43,8 +44,8 @@ class HttpResponse:
             logger.debug(f"Successfully executed route {route.route()} with url {request.url}\nResult: {res}")
             return HttpResponse(route.content_type(), response.http_version, response.status, str(res).encode() if type(res) is not bytes else res)
         except Exception as e:
-            logger.error(e)
-            return HttpResponse(ContentType.text, request.http_version, HttpStatus.INTERNAL_SERVER_ERROR, repr(e).encode())
+            logger.exception(e)
+            return HttpResponse(ContentType.text, request.http_version, HttpStatus.INTERNAL_SERVER_ERROR, traceback.format_exc().encode())
 
     @staticmethod
     def build_empty_status_response(request, status: HttpStatus, additional_info: bytes):
@@ -67,5 +68,5 @@ class HttpResponse:
                     html = file.read() + b"\r\n\r\n"
                 return HttpResponse(content_type, request.http_version, HttpStatus.OK, html)
         except Exception as e:
-            logger.error(e)
-            return HttpResponse(ContentType.text, request.http_version, HttpStatus.INTERNAL_SERVER_ERROR, repr(e).encode())
+            logger.exception(e)
+            return HttpResponse(ContentType.text, request.http_version, HttpStatus.INTERNAL_SERVER_ERROR, traceback.format_exc().encode())
