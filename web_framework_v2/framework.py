@@ -10,9 +10,8 @@ logger = logging.getLogger(__name__)
 
 
 class Framework:
-    def __init__(self, static_folder: str, static_url_path: str, log_level=logging.DEBUG):
-        logging.basicConfig(format='%(asctime)s %(module)s %(levelname)s: %(message)s',
-                            datefmt='%m/%d/%Y %I:%M:%S %p', level=log_level)
+    def __init__(self, static_folder: str, static_url_path: str, log_level=logging.INFO):
+        logging.getLogger("web_framework_v2").setLevel(log_level)
 
         self._static_folder = static_folder
         self._static_url_path = static_url_path
