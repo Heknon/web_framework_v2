@@ -1,13 +1,14 @@
+import logging
 import socket
-import ssl
 import threading
 
 from web_framework_v2.parser import RequestParser
 
+logger = logging.getLogger(__name__)
+
 
 class HttpClient:
     def __init__(self, client_socket: socket.socket, address, response_builder):
-
         self.socket = client_socket
         self.address = address
         self.response_builder = response_builder
@@ -21,6 +22,7 @@ class HttpClient:
 
     def close(self):
         self.socket.shutdown(socket.SHUT_WR)
+        logger.debug(f"Closing client socket and exiting client thread {threading.current_thread()}")
         exit()
 
     def send(self, data: bytes):
@@ -38,7 +40,9 @@ class HttpClient:
                 data += curr_data_buffer
 
             request = RequestParser(data).parse()
+            logger.debug(f"Finished building request object {request}")
             response = self.response_builder(request)
+            logger.debug(f"Finished building response object {response}")
             response_data = response.data()
             self.send(response_data)
             self.close()

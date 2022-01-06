@@ -1,7 +1,8 @@
 import re
 
-from web_framework_v2.http import HttpMethod, ContentType, HttpRequest
-from web_framework_v2.method import Method
+import web_framework_v2.http.http_request as http_request
+from web_framework_v2.http import HttpMethod, ContentType
+import web_framework_v2.method as method_module
 
 
 class Endpoint:
@@ -20,17 +21,17 @@ class Endpoint:
         self._content_type = content_type
         self._func = func
         self._match_headers = match_headers
-        self._method = Method(self._func)
+        self._method = method_module.Method(self._func)
 
         self._variable_table = {i.group(): i.span() for i in self.VARIABLE_MATCHER.finditer(self._route)}
         self._route_contains_variables = len(self._variable_table) > 0
         self._route_slashes = self.SLASH_EXTRACTOR.findall(self._route)
 
-    def execute(self, request: HttpRequest, response, path_variables):
+    def execute(self, request: http_request.HttpRequest, response, path_variables):
         request.path_variables = path_variables
         return self._method.execute(request, response)
 
-    def matches_headers(self, request: HttpRequest):
+    def matches_headers(self, request: http_request.HttpRequest):
         if self._match_headers is None or len(self._match_headers) == 0:
             return True
 

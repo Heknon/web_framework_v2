@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 from . import Endpoint
-from .. import HttpRequest
+import web_framework_v2.http.http_request as http_request
 
 
 class EndpointMap:
     def __init__(self):
         self._method_routes_map = {}  # HttpMethod: {route_str: Route}
 
-    def get_endpoint(self, request: HttpRequest) -> tuple[Endpoint | None, str | None] | None:
+    def get_endpoint(self, request: http_request.HttpRequest) -> tuple[Endpoint | None, str | None] | None:
         endpoint_obj = self._method_routes_map.get(request.method, {}).get(request.url, None)
 
         if endpoint_obj is None:

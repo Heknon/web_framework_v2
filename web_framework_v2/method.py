@@ -1,9 +1,14 @@
 import inspect
+import logging
 
 import jsonpickle
 
 import web_framework_v2.annotations
-from web_framework_v2.http import HttpRequest, ContentType, HttpResponse
+import web_framework_v2.http.http_request as http_request
+import web_framework_v2.decorator as decorator_module
+from web_framework_v2.http import ContentType, http_response
+
+logger = logging.getLogger(__name__)
 
 
 class Method:
@@ -17,7 +22,7 @@ class Method:
         """
         self._method = method
 
-    def execute(self, request, response):
+    def execute(self, request: http_request.HttpRequest, response):
         argspec = inspect.getfullargspec(self._method)
         args_len = len(argspec.args)
         defaults_len = len(argspec.defaults) if argspec.defaults is not None else 0
@@ -33,10 +38,15 @@ class Method:
         # Execute decorator functionality
         if hasattr(self._method, "decorators"):
             decorators = getattr(self._method, "decorators", [])
+            logger.debug(f"Method's decorators: {decorators}")
+            request_body = web_framework_v2.annotations.RequestBody().value_generator(request)
 
+            decorator: decorator_module.Decorator
             for decorator in decorators:
-                should_exec, result, data = decorator.should_execute_endpoint(request, web_framework_v2.annotations.RequestBody().value_generator(request))
+                should_exec, result, data = \
+                    decorator.should_execute_endpoint(request, request_body)
                 if not should_exec:
+                    logger.debug(f"Decorator failed. Calling on_fail. {decorator}")
                     return decorator.on_fail(request, response, data)
 
                 if result is not None:
@@ -50,10 +60,10 @@ class Method:
                     if kwargs[parameter_name] is None and parameter_name in defaults_map:
                         kwargs[parameter_name] = defaults_map[parameter_name]
                 else:
-                    if annotation is HttpRequest or type(annotation) is HttpRequest:
+                    if annotation is http_request.HttpRequest or type(annotation) is http_request.HttpRequest:
                         kwargs[parameter_name] = request
                         defaults_map.pop(parameter_name, None)
-                    elif annotation is HttpResponse or type(annotation) is HttpResponse:
+                    elif annotation is http_response.HttpResponse or type(annotation) is http_response.HttpResponse:
                         kwargs[parameter_name] = response
                         defaults_map.pop(parameter_name, None)
                     elif annotation in decorator_result_map:
@@ -68,5 +78,6 @@ class Method:
 
                 kwargs[parameter_name] = default_value
 
+        logger.debug(f"Finished building method kwargs. {kwargs}")
         method_result = self._method(**kwargs)
         return jsonpickle.encode(method_result, unpicklable=False) if response.content_type in self.encodable_content_types else method_result

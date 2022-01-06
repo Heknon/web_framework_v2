@@ -1,8 +1,11 @@
+import logging
 import os
 import time
-import traceback
 
+import web_framework_v2.route.endpoint as endpoint
 from web_framework_v2.http import HttpStatus, ContentType
+
+logger = logging.getLogger(__name__)
 
 
 class HttpResponse:
@@ -32,14 +35,16 @@ class HttpResponse:
         return f"{header}: {value}\r\n".encode()
 
     @staticmethod
-    def build_from_route(request, route, path_variables: dict):
+    def build_from_route(request, route: endpoint.Endpoint, path_variables: dict):
         try:
             response = HttpResponse.build_empty_status_response(request, HttpStatus.OK, b"")
+            logger.debug(f"Executing route {route.route()} with url {request.url}")
             res = route.execute(request.clone(), response, path_variables)
+            logger.debug(f"Successfully executed route {route.route()} with url {request.url}\nResult: {res}")
             return HttpResponse(route.content_type(), response.http_version, response.status, str(res).encode() if type(res) is not bytes else res)
         except Exception as e:
-            print(traceback.format_exc())
-            return HttpResponse(ContentType.text, request.http_version, HttpStatus.INTERNAL_SERVER_ERROR, bytes())
+            logger.error(e)
+            return HttpResponse(ContentType.text, request.http_version, HttpStatus.INTERNAL_SERVER_ERROR, repr(e).encode())
 
     @staticmethod
     def build_empty_status_response(request, status: HttpStatus, additional_info: bytes):
@@ -51,13 +56,16 @@ class HttpResponse:
     def build_from_file(request, path: str):
         try:
             if not os.path.isfile(path):
+                logger.debug(f"Failed to find static file at {path}")
                 return HttpResponse(ContentType.text, request.http_version, HttpStatus.NOT_FOUND, bytes())
             else:
                 extension = os.path.splitext(path)[1][1::]
                 content_type = ContentType[extension]
                 html: bytes
+                logger.debug(f"Building response using static file at {path}")
                 with open(path, 'rb') as file:
                     html = file.read() + b"\r\n\r\n"
                 return HttpResponse(content_type, request.http_version, HttpStatus.OK, html)
-        except Exception:
-            return HttpResponse(ContentType.text, request.http_version, HttpStatus.INTERNAL_SERVER_ERROR, bytes())
+        except Exception as e:
+            logger.error(e)
+            return HttpResponse(ContentType.text, request.http_version, HttpStatus.INTERNAL_SERVER_ERROR, repr(e).encode())

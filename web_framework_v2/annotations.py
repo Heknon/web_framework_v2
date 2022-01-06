@@ -4,7 +4,7 @@ from abc import ABC
 
 import jsonpickle
 
-from web_framework_v2.http import HttpRequest
+import web_framework_v2.http.http_request as http_request
 
 
 class Annotation(ABC):
@@ -20,7 +20,7 @@ class Annotation(ABC):
         self._parameter_type = parameter_type
         self._use_json_object_hook = use_json_object_hook
 
-    def value_generator(self, request: HttpRequest):
+    def value_generator(self, request: http_request.HttpRequest):
         raise NotImplementedError("Implement value_generator in non abstract class.")
 
     def adapt(self, data, parameter_type):
@@ -57,7 +57,7 @@ class QueryParameter(Annotation):
         self.query_name = query_name
         super().__init__(parameter_type, use_json_object_hook)
 
-    def value_generator(self, request: HttpRequest):
+    def value_generator(self, request: http_request.HttpRequest):
         value = request.query_parameters.get(self.query_name, None) if request.query_parameters is not None else None
         value = value if len(value) > 1 else value[0]
 
@@ -85,7 +85,7 @@ class PathVariable(Annotation):
         super().__init__(parameter_type, use_json_object_hook)
         self.variable_name = variable_name
 
-    def value_generator(self, request: HttpRequest):
+    def value_generator(self, request: http_request.HttpRequest):
         value = request.path_variables.get(self.variable_name, None)
 
         return self.adapt(value, self._parameter_type) if value is not None else None
