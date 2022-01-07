@@ -4,8 +4,8 @@ import logging
 import jsonpickle
 
 import web_framework_v2.annotations
-import web_framework_v2.http.http_request as http_request
 import web_framework_v2.decorator as decorator_module
+import web_framework_v2.http.http_request as http_request
 from web_framework_v2.http import ContentType, http_response
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,12 @@ class Method:
         if hasattr(self._method, "decorators"):
             decorators = getattr(self._method, "decorators", [])
             logger.debug(f"Method's decorators: {decorators}")
-            request_body = web_framework_v2.annotations.RequestBody().value_generator(request)
+            request_body = list(filter(lambda annot: type(annot) is web_framework_v2.annotations.RequestBody, argspec.annotations.values()))
+
+            if len(request_body) > 0:
+                request_body = request_body[0].value_generator(request)
+            else:
+                request_body = web_framework_v2.annotations.RequestBody().value_generator(request)
 
             decorator: decorator_module.Decorator
             for decorator in decorators:
