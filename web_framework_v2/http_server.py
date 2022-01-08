@@ -9,9 +9,9 @@ logger = logging.getLogger(__name__)
 
 
 class HttpServer:
-    def __init__(self, framework):
+    def __init__(self, framework, host, port):
         self._framework = framework
-        self._ip = ("0.0.0.0", 80)
+        self._ip = (host, port)
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._client_listen_thread = threading.Thread(target=self.__client_listener)
 
