@@ -34,7 +34,7 @@ class JwtSecurity(Decorator, ABC):
 
     @staticmethod
     def decode_request(request):
-        return JwtSecurity.decode_token(request.headers["Authorization"][8:])
+        return JwtSecurity.decode_token(request.headers["Authorization"][8:]) if "Authorization" in request.headers else None
 
     @staticmethod
     def create_token(data, expiration_seconds: int):
