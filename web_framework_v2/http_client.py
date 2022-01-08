@@ -39,10 +39,11 @@ class HttpClient:
                 curr_data_buffer = self.socket.recv(self.byte_fetch_amount)
                 data += curr_data_buffer
 
-            request = RequestParser(data).parse()
-            logger.debug(f"Finished building request object {request}")
-            response = self.response_builder(request)
-            logger.debug(f"Finished building response object {response}")
-            response_data = response.data()
-            self.send(response_data)
+            if len(data) > 0:
+                request = RequestParser(data).parse()
+                logger.debug(f"Finished building request object {request}")
+                response = self.response_builder(request)
+                logger.debug(f"Finished building response object {response}")
+                response_data = response.data()
+                self.send(response_data)
             self.close()

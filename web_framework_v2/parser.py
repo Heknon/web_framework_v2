@@ -1,4 +1,8 @@
+import logging
+
 from web_framework_v2.http import HttpMethod, HttpRequest
+
+logger = logging.getLogger(__name__)
 
 
 class RequestParser:
@@ -22,10 +26,9 @@ class RequestParser:
             body = self.request[self.cursor:]
 
             return HttpRequest(method, url, version, headers, query_parameters, body)
-        except:
-            print("ERROR:")
-            print(self.request)
-            print("=-=-=-=-= ERROR =-=-=-=-=")
+        except Exception as e:
+            logger.error(self.request)
+            logger.exception(e)
             raise
 
     def current(self):
