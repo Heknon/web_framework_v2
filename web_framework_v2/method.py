@@ -56,6 +56,9 @@ class Method:
 
                 if result is not None:
                     decorator_result_map[type(decorator)] = result  # Used when building kwargs to set result based on annotation
+                elif decorator.fail_on_null_result:
+                    logger.debug(f"Decorator returned null result and is set to fail on null result. Calling on_fail. {decorator}")
+                    return decorator.on_fail(request, response, data)
 
         # Build kwargs
         if args_len > 0 and len(argspec.annotations) > 0:

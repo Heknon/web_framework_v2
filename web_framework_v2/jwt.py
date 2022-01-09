@@ -10,11 +10,12 @@ from web_framework_v2.decorator import Decorator
 class JwtSecurity(Decorator, ABC):
     _SECRET = "secret_key_temporary"
 
-    def __init__(self, on_fail=lambda request, response: None):
+    def __init__(self, on_fail=lambda request, response: None, fail_on_null_result=True):
         """
         Base class of JWT security
         :param on_fail: called when security check fails.
         """
+        super().__init__(fail_on_null_result)
         self.on_fail = on_fail
 
     @staticmethod
