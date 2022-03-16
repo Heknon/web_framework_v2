@@ -100,7 +100,7 @@ class RequestParser:
             while header[idx] == " ":
                 idx += 1
             value = header[idx:]
-            headers[name] = value
+            headers[name.lower()] = value
 
         return headers
 
