@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class HttpResponse:
     def __init__(self, content_type, http_version: str, status, html: bytes):
-        self.content_type = str(content_type)
+        self.content_type = content_type
         self.http_version = http_version
         self.status = status
         self.html = html if html is not None else b""
@@ -38,7 +38,7 @@ class HttpResponse:
     @staticmethod
     def build_from_route(request, route: endpoint.Endpoint, path_variables: dict):
         try:
-            response = HttpResponse.build_empty_status_response(request, HttpStatus.OK, b"")
+            response = HttpResponse.build_empty_status_response(request, route.content_type(), HttpStatus.OK, b"")
             logger.debug(f"Executing route {route.route()} with url {request.url}")
             res = route.execute(request.clone(), response, path_variables)
             logger.debug(f"Successfully executed route {route.route()} with url {request.url}\nResult: {res}")
@@ -48,10 +48,10 @@ class HttpResponse:
             return HttpResponse(ContentType.text, request.http_version, HttpStatus.INTERNAL_SERVER_ERROR, traceback.format_exc().encode())
 
     @staticmethod
-    def build_empty_status_response(request, status: HttpStatus, additional_info: bytes):
+    def build_empty_status_response(request, content_type: ContentType, status: HttpStatus, additional_info: bytes):
         if additional_info is None:
             additional_info = ""
-        return HttpResponse(ContentType.html, request.http_version, status, additional_info)
+        return HttpResponse(content_type, request.http_version, status, additional_info)
 
     @staticmethod
     def build_from_file(request, path: str):
