@@ -20,6 +20,7 @@ class RequestParser:
         try:
             method = HttpMethod.__getitem__(self.extract_till_space())
             url, query_parameters = self.parse_url()
+            url = RequestParser.format_url(url)
             version = self.extract_till_carriage()
             headers = self.parse_header_space()
             self.skip_carriage()
@@ -134,3 +135,15 @@ class RequestParser:
             match_count += 1
 
         return match_count
+
+    @staticmethod
+    def format_url(format_url: str):
+        new_url = ""
+        if format_url[0] != '/':
+            new_url += '/'
+
+        new_url += format_url
+        if new_url[-1] != '/':
+            new_url += '/'
+
+        return new_url
