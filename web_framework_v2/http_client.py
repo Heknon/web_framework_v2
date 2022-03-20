@@ -41,7 +41,7 @@ class HttpClient:
 
             if len(data) > 0:
                 request = RequestParser(data).parse()
-                missingData = int(request.headers['content-length']) - len(request.body)
+                missingData = int(request.headers.get("content-length", 0)) - len(request.body)
                 if missingData > 0:
                     data += self.socket.recv(missingData)
                     request = RequestParser(data).parse()
