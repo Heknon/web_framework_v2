@@ -1,6 +1,7 @@
 import logging
 import socket
 import threading
+import time
 
 from web_framework_v2.parser import RequestParser
 
@@ -57,4 +58,5 @@ class HttpClient:
                 logger.debug(f"Finished building response object {response}")
                 response_data = response.data()
                 self.send(response_data)
+                time.sleep(0.001)  # TODO: Maybe need to find new solution since this might be latency
             self.close()
