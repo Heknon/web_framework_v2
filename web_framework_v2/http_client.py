@@ -60,5 +60,5 @@ class HttpClient:
                 self.send(response_data)
                 self.socket.shutdown(socket.SHUT_WR)  # wait for fin
                 self.socket.recv(1)  # receive fin
-                time.sleep(0.001)  # timeout just in case
+                time.sleep(0.01)  # timeout just in case
             self.close()
