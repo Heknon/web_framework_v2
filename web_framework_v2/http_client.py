@@ -58,5 +58,7 @@ class HttpClient:
                 logger.debug(f"Finished building response object {response}")
                 response_data = response.data()
                 self.send(response_data)
-                time.sleep(0.001)  # TODO: Maybe need to find new solution since this might be latency
+                self.socket.shutdown(socket.SHUT_WR)  # wait for fin
+                self.socket.recv(1)  # receive fin
+                time.sleep(0.001)  # timeout just in case
             self.close()
