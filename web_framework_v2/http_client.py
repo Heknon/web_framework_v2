@@ -15,7 +15,7 @@ class HttpClient:
         self.response_receive_time = 0
         self.is_closed = False
         self.response_handler_thread = threading.Thread(target=self.request_handler)
-        self.byte_fetch_amount = 2048
+        self.byte_fetch_amount = 1024 * 8
 
     def start(self):
         self.response_handler_thread.start()
@@ -42,8 +42,14 @@ class HttpClient:
             if len(data) > 0:
                 request = RequestParser(data).parse()
                 missingData = int(request.headers.get("content-length", 0)) - len(request.body)
+                missingCounter = missingData
+                while missingCounter > 0:
+                    fetch_amount = max(0, min(self.byte_fetch_amount, missingCounter))
+                    fetched_data = self.socket.recv(fetch_amount)
+                    data += fetched_data
+                    missingCounter -= len(fetched_data)
+
                 if missingData > 0:
-                    data += self.socket.recv(missingData)
                     request = RequestParser(data).parse()
 
                 logger.debug(f"Finished building request object {request}")
