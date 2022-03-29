@@ -36,7 +36,7 @@ class HttpServer:
 
         if route is not None:
             logger.debug(f"Found route {route}")
-            return HttpResponse.build_from_route(request, route, path_variables)
+            return HttpResponse.build_from_route(request, route, path_variables, self._framework.error_handler)
         else:
             logger.debug("Failed to find endpoint, building response using static folder.")
             path = self._framework.static_folder() + (self._framework.static_url_path() if request.url == "/" else request.url)

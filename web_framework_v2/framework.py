@@ -11,12 +11,22 @@ logger = logging.getLogger(__name__)
 
 
 class Framework:
-    def __init__(self, static_folder: str, static_url_path: str, host: str = "localhost", port: int = 80, log_level=logging.INFO):
+    def __init__(
+            self,
+            static_folder: str,
+            static_url_path: str,
+            host: str = "localhost",
+            port: int = 80,
+            log_level=logging.INFO,
+            error_handler: ErrorHandler = lambda exception, traceback, request, response, path_variables: {"error": str(exception),
+                                                                                                           "traceback": traceback}
+    ):
         logging.getLogger("web_framework_v2").setLevel(log_level)
 
         self._static_folder = static_folder
         self._static_url_path = static_url_path
         self._active = False
+        self._error_handler = error_handler
         self._http_server = HttpServer(self, host, port)
         self._endpoint_map = EndpointMap()
 
@@ -199,3 +209,7 @@ class Framework:
 
     def is_active(self):
         return self._active
+
+    @property
+    def error_handler(self):
+        return self._error_handler
