@@ -46,10 +46,11 @@ class HttpResponse:
             logger.debug(f"Successfully executed route {route.route()} with url {request.url}\nResult: {res}")
             return HttpResponse(route.content_type(), response.http_version, response.status, str(res).encode() if type(res) is not bytes else res)
         except Exception as e:
+            from web_framework_v2.method import Method
             logger.exception(e)
             response = HttpResponse.build_empty_status_response(request, route.content_type(), HttpStatus.INTERNAL_SERVER_ERROR, b"")
-            res = framework_error_handler(e, traceback.format_exc(), request.clone(), response, path_variables)
-            return res
+            res = Method.encode_result(framework_error_handler(e, traceback.format_exc(), request.clone(), response, path_variables), response)
+            return HttpResponse(route.content_type(), response.http_version, response.status, str(res).encode() if type(res) is not bytes else res)
 
     @staticmethod
     def build_empty_status_response(request, content_type: ContentType, status: HttpStatus, additional_info: bytes):
