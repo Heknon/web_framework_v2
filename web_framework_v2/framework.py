@@ -50,6 +50,8 @@ class Framework:
             error_handler: ErrorHandler = None
     ):
         assert route is not None and type(route) is str, "Route must be a valid string!"
+        if error_handler is None:
+            error_handler = self._error_handler
 
         if methods is None:
             methods = {HttpMethod.GET}
