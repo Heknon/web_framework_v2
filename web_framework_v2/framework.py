@@ -4,6 +4,7 @@ from web_framework_v2.http import HttpRequest, ContentType
 from web_framework_v2.http.http_method import HttpMethod
 from web_framework_v2.http_server import HttpServer
 from web_framework_v2.route import Endpoint
+from web_framework_v2.route.endpoint import ErrorHandler
 from web_framework_v2.route.endpoint_map import EndpointMap
 
 logger = logging.getLogger(__name__)
@@ -26,11 +27,18 @@ class Framework:
     def get_endpoint(self, request: HttpRequest):
         return self._endpoint_map.get_endpoint(request)
 
-    def add_endpoint(self, route: str, func, methods: {HttpMethod}, match_headers: dict, content_type: ContentType):
+    def add_endpoint(self, route: str, func, methods: {HttpMethod}, match_headers: dict, content_type: ContentType, error_handler: ErrorHandler):
         for method in methods:
-            self._endpoint_map.add_route(Endpoint(route, method, content_type, func, match_headers))
+            self._endpoint_map.add_route(Endpoint(route, method, content_type, func, match_headers, error_handler))
 
-    def endpoint(self, route: str, methods: {HttpMethod} = None, content_type: ContentType = ContentType.json, match_headers: dict = None):
+    def endpoint(
+            self,
+            route: str,
+            methods: {HttpMethod} = None,
+            content_type: ContentType = ContentType.json,
+            match_headers: dict = None,
+            error_handler: ErrorHandler = None
+    ):
         assert route is not None and type(route) is str, "Route must be a valid string!"
 
         if methods is None:
@@ -43,55 +51,145 @@ class Framework:
             content_type = ContentType.json
 
         def decorator(f):
-            self.add_endpoint(route, f, methods, match_headers, content_type)
+            self.add_endpoint(route, f, methods, match_headers, content_type, error_handler)
             return f
 
         return decorator
 
-    def get(self, route: str, match_headers: dict = None, content_type: ContentType = ContentType.json):
-        return self.endpoint(route, {HttpMethod.GET}, content_type, match_headers)
+    def get(
+            self,
+            route: str,
+            match_headers: dict = None,
+            content_type: ContentType = ContentType.json,
+            error_handler: ErrorHandler = None
+    ):
+        return self.endpoint(route, {HttpMethod.GET}, content_type, match_headers, error_handler)
 
-    def post(self, route: str, match_headers: dict = None, content_type: ContentType = ContentType.json):
-        return self.endpoint(route, {HttpMethod.POST}, content_type, match_headers)
+    def post(
+            self,
+            route: str,
+            match_headers: dict = None,
+            content_type: ContentType = ContentType.json,
+            error_handler: ErrorHandler = None
+    ):
+        return self.endpoint(route, {HttpMethod.POST}, content_type, match_headers, error_handler)
 
-    def put(self, route: str, match_headers: dict = None, content_type: ContentType = ContentType.json):
-        return self.endpoint(route, {HttpMethod.PUT}, content_type, match_headers)
+    def put(
+            self,
+            route: str,
+            match_headers: dict = None,
+            content_type: ContentType = ContentType.json,
+            error_handler: ErrorHandler = None
+    ):
+        return self.endpoint(route, {HttpMethod.PUT}, content_type, match_headers, error_handler)
 
-    def patch(self, route: str, match_headers: dict = None, content_type: ContentType = ContentType.json):
-        return self.endpoint(route, {HttpMethod.PATCH}, content_type, match_headers)
+    def patch(
+            self,
+            route: str,
+            match_headers: dict = None,
+            content_type: ContentType = ContentType.json,
+            error_handler: ErrorHandler = None
+    ):
+        return self.endpoint(route, {HttpMethod.PATCH}, content_type, match_headers, error_handler)
 
-    def delete(self, route: str, match_headers: dict = None, content_type: ContentType = ContentType.json):
-        return self.endpoint(route, {HttpMethod.DELETE}, content_type, match_headers)
+    def delete(
+            self,
+            route: str,
+            match_headers: dict = None,
+            content_type: ContentType = ContentType.json,
+            error_handler: ErrorHandler = None
+    ):
+        return self.endpoint(route, {HttpMethod.DELETE}, content_type, match_headers, error_handler)
 
-    def copy(self, route: str, match_headers: dict = None, content_type: ContentType = ContentType.json):
-        return self.endpoint(route, {HttpMethod.COPY}, content_type, match_headers)
+    def copy(
+            self,
+            route: str,
+            match_headers: dict = None,
+            content_type: ContentType = ContentType.json,
+            error_handler: ErrorHandler = None
+    ):
+        return self.endpoint(route, {HttpMethod.COPY}, content_type, match_headers, error_handler)
 
-    def head(self, route: str, match_headers: dict = None, content_type: ContentType = ContentType.json):
-        return self.endpoint(route, {HttpMethod.HEAD}, content_type, match_headers)
+    def head(
+            self,
+            route: str,
+            match_headers: dict = None,
+            content_type: ContentType = ContentType.json,
+            error_handler: ErrorHandler = None
+    ):
+        return self.endpoint(route, {HttpMethod.HEAD}, content_type, match_headers, error_handler)
 
-    def options(self, route: str, match_headers: dict = None, content_type: ContentType = ContentType.json):
-        return self.endpoint(route, {HttpMethod.OPTIONS}, content_type, match_headers)
+    def options(
+            self,
+            route: str,
+            match_headers: dict = None,
+            content_type: ContentType = ContentType.json,
+            error_handler: ErrorHandler = None
+    ):
+        return self.endpoint(route, {HttpMethod.OPTIONS}, content_type, match_headers, error_handler)
 
-    def link(self, route: str, match_headers: dict = None, content_type: ContentType = ContentType.json):
-        return self.endpoint(route, {HttpMethod.LINK}, content_type, match_headers)
+    def link(
+            self,
+            route: str,
+            match_headers: dict = None,
+            content_type: ContentType = ContentType.json,
+            error_handler: ErrorHandler = None
+    ):
+        return self.endpoint(route, {HttpMethod.LINK}, content_type, match_headers, error_handler)
 
-    def unlink(self, route: str, match_headers: dict = None, content_type: ContentType = ContentType.json):
-        return self.endpoint(route, {HttpMethod.UNLINK}, content_type, match_headers)
+    def unlink(
+            self,
+            route: str,
+            match_headers: dict = None,
+            content_type: ContentType = ContentType.json,
+            error_handler: ErrorHandler = None
+    ):
+        return self.endpoint(route, {HttpMethod.UNLINK}, content_type, match_headers, error_handler)
 
-    def purge(self, route: str, match_headers: dict = None, content_type: ContentType = ContentType.json):
-        return self.endpoint(route, {HttpMethod.PURGE}, content_type, match_headers)
+    def purge(
+            self,
+            route: str,
+            match_headers: dict = None,
+            content_type: ContentType = ContentType.json,
+            error_handler: ErrorHandler = None
+    ):
+        return self.endpoint(route, {HttpMethod.PURGE}, content_type, match_headers, error_handler)
 
-    def lock(self, route: str, match_headers: dict = None, content_type: ContentType = ContentType.json):
-        return self.endpoint(route, {HttpMethod.LOCK}, content_type, match_headers)
+    def lock(
+            self,
+            route: str,
+            match_headers: dict = None,
+            content_type: ContentType = ContentType.json,
+            error_handler: ErrorHandler = None
+    ):
+        return self.endpoint(route, {HttpMethod.LOCK}, content_type, match_headers, error_handler)
 
-    def unlock(self, route: str, match_headers: dict = None, content_type: ContentType = ContentType.json):
-        return self.endpoint(route, {HttpMethod.UNLOCK}, content_type, match_headers)
+    def unlock(
+            self,
+            route: str,
+            match_headers: dict = None,
+            content_type: ContentType = ContentType.json,
+            error_handler: ErrorHandler = None
+    ):
+        return self.endpoint(route, {HttpMethod.UNLOCK}, content_type, match_headers, error_handler)
 
-    def propfind(self, route: str, match_headers: dict = None, content_type: ContentType = ContentType.json):
-        return self.endpoint(route, {HttpMethod.PROPFIND}, content_type, match_headers)
+    def propfind(
+            self,
+            route: str,
+            match_headers: dict = None,
+            content_type: ContentType = ContentType.json,
+            error_handler: ErrorHandler = None
+    ):
+        return self.endpoint(route, {HttpMethod.PROPFIND}, content_type, match_headers, error_handler)
 
-    def view(self, route: str, match_headers: dict = None, content_type: ContentType = ContentType.json):
-        return self.endpoint(route, {HttpMethod.VIEW}, content_type, match_headers)
+    def view(
+            self,
+            route: str,
+            match_headers: dict = None,
+            content_type: ContentType = ContentType.json,
+            error_handler: ErrorHandler = None
+    ):
+        return self.endpoint(route, {HttpMethod.VIEW}, content_type, match_headers, error_handler)
 
     def static_folder(self):
         return self._static_folder

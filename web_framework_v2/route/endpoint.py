@@ -1,15 +1,26 @@
 import re
+from typing import Callable, Dict
 
 import web_framework_v2.http.http_request as http_request
-from web_framework_v2.http import HttpMethod, ContentType
+import web_framework_v2.http.http_response as http_response
 import web_framework_v2.method as method_module
+from web_framework_v2.http import HttpMethod, ContentType
+
+ErrorHandler = Callable[[Exception, str, http_request.HttpRequest, http_response.HttpResponse, Dict], object]
 
 
 class Endpoint:
     VARIABLE_MATCHER = re.compile(r"({.+?})")
     SLASH_EXTRACTOR = re.compile(r"/?([^/]+)/?")
 
-    def __init__(self, route: str, http_method: HttpMethod, content_type: ContentType, func, match_headers: dict):
+    def __init__(
+            self,
+            route: str,
+            http_method: HttpMethod,
+            content_type: ContentType,
+            func, match_headers: dict,
+            error_handler: ErrorHandler
+    ):
         if len(route) == 0:
             route = "/"
 
@@ -19,6 +30,9 @@ class Endpoint:
         self._route = route
         self._http_method = http_method
         self._content_type = content_type
+        self._error_handler = \
+            error_handler if error_handler is not None else lambda exception, traceback, request, response, path_variables: {"error": str(exception),
+                                                                                                                             "traceback": traceback}
         self._func = func
         self._match_headers = match_headers
         self._method = method_module.Method(self._func)
@@ -26,6 +40,16 @@ class Endpoint:
         self._variable_table = {i.group(): i.span() for i in self.VARIABLE_MATCHER.finditer(self._route)}
         self._route_contains_variables = len(self._variable_table) > 0
         self._route_slashes = self.SLASH_EXTRACTOR.findall(self._route)
+
+    def execute_error_handler(
+            self,
+            exception: Exception,
+            traceback: str,
+            request: http_request.HttpRequest,
+            response: http_response.HttpResponse,
+            path_variables: Dict
+    ):
+        return method_module.Method.encode_result(self._error_handler(exception, traceback, request, response, path_variables), response)
 
     def execute(self, request: http_request.HttpRequest, response, path_variables):
         request.path_variables = path_variables

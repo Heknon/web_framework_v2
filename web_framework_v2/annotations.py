@@ -65,6 +65,9 @@ class QueryParameter(Annotation):
 
         value = value if len(value) > 1 else value[0]
 
+        if self._parameter_type == list and not isinstance(value, list):
+            value = [value]
+
         return self.adapt(
             value,
             self._parameter_type

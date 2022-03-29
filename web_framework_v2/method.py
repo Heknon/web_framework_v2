@@ -6,7 +6,9 @@ import jsonpickle
 import web_framework_v2.annotations
 import web_framework_v2.decorator as decorator_module
 import web_framework_v2.http.http_request as http_request
-from web_framework_v2.http import ContentType, http_response
+import web_framework_v2.http.http_response as http_response
+
+from web_framework_v2.http import ContentType
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +24,7 @@ class Method:
         """
         self._method = method
 
-    def execute(self, request: http_request.HttpRequest, response):
+    def execute(self, request: http_request.HttpRequest, response: http_response.HttpResponse):
         argspec = inspect.getfullargspec(self._method)
         args_len = len(argspec.args)
         defaults_len = len(argspec.defaults) if argspec.defaults is not None else 0
@@ -88,4 +90,8 @@ class Method:
 
         logger.debug(f"Finished building method kwargs. {kwargs}")
         method_result = self._method(**kwargs)
-        return jsonpickle.encode(method_result, unpicklable=False) if response.content_type in self.encodable_content_types else method_result
+        return Method.encode_result(method_result, response)
+
+    @staticmethod
+    def encode_result(result: object, response: http_response.HttpResponse):
+        return jsonpickle.encode(result, unpicklable=False) if response.content_type in Method.encodable_content_types else result

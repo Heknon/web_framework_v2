@@ -3,7 +3,6 @@ import os
 import time
 import traceback
 
-import web_framework_v2.route.endpoint as endpoint
 from web_framework_v2.http import HttpStatus, ContentType
 
 logger = logging.getLogger(__name__)
@@ -36,11 +35,14 @@ class HttpResponse:
         return f"{header}: {value}\r\n".encode()
 
     @staticmethod
-    def build_from_route(request, route: endpoint.Endpoint, path_variables: dict):
+    def build_from_route(request, route, path_variables: dict):
         try:
             response = HttpResponse.build_empty_status_response(request, route.content_type(), HttpStatus.OK, b"")
             logger.debug(f"Executing route {route.route()} with url {request.url}")
-            res = route.execute(request.clone(), response, path_variables)
+            try:
+                res = route.execute(request.clone(), response, path_variables)
+            except Exception as e:
+                res = route.execute_error_handler(e, traceback.format_exc(), request.clone(), response, path_variables)
             logger.debug(f"Successfully executed route {route.route()} with url {request.url}\nResult: {res}")
             return HttpResponse(route.content_type(), response.http_version, response.status, str(res).encode() if type(res) is not bytes else res)
         except Exception as e:
