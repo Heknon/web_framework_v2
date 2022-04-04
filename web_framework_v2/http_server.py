@@ -44,3 +44,4 @@ class HttpServer:
 
     def shutdown(self):
         self._socket.shutdown(socket.SHUT_WR)
+        exit(0)

@@ -34,6 +34,10 @@ class Framework:
         self._active = True
         self._http_server.start()
 
+    def shutdown(self):
+        self._active = False
+        self._http_server.shutdown()
+
     def get_endpoint(self, request: HttpRequest):
         return self._endpoint_map.get_endpoint(request)
 
