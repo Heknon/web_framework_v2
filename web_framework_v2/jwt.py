@@ -9,6 +9,7 @@ from web_framework_v2.decorator import Decorator
 
 class JwtSecurity(Decorator, ABC):
     _SECRET = "secret_key_temporary"
+    _PUBLIC = ""
 
     def __init__(self, on_fail=lambda request, response: None, fail_on_null_result=True):
         """
@@ -27,9 +28,17 @@ class JwtSecurity(Decorator, ABC):
         JwtSecurity._SECRET = secret
 
     @staticmethod
+    def public():
+        return JwtSecurity._PUBLIC
+
+    @staticmethod
+    def set_public(public):
+        JwtSecurity._PUBLIC = public
+
+    @staticmethod
     def decode_token(token):
         try:
-            return jwt.decode(token, JwtSecurity.secret(), algorithms=["HS256"])
+            return jwt.decode(token, JwtSecurity.public(), algorithms=["RS256"])
         except:
             return None
 
@@ -41,7 +50,7 @@ class JwtSecurity(Decorator, ABC):
     @staticmethod
     def create_token(data, expiration_seconds: int):
         data["exp"] = datetime.now(tz=timezone.utc).timestamp() + expiration_seconds
-        return jwt.encode(data, JwtSecurity.secret())
+        return jwt.encode(data, JwtSecurity.secret(), algorithm='RS256')
 
 
 class JwtTokenFactory(JwtSecurity, ABC):
