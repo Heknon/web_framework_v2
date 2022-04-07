@@ -45,7 +45,7 @@ class JwtSecurity(Decorator, ABC):
 
     @staticmethod
     def _create_token(data, expiration_seconds: int, key: KeyPair):
-        data["exp"] = datetime.now(tz=timezone.utc).timestamp() + expiration_seconds
+        data["exp"] = int(datetime.now(tz=timezone.utc).timestamp() + expiration_seconds)
         return jwt.encode(data, key.private, algorithm='RS256')
 
     @staticmethod
