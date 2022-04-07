@@ -1,15 +1,16 @@
-import time
 from abc import ABC
 from datetime import datetime, timezone
 from typing import Tuple
 
 import jwt
+
 from web_framework_v2.decorator import Decorator
+from web_framework_v2.security import KeyPair
 
 
 class JwtSecurity(Decorator, ABC):
-    _SECRET = "secret_key_temporary"
-    _PUBLIC = ""
+    access_key: KeyPair
+    refresh_key: KeyPair
 
     def __init__(self, on_fail=lambda request, response: None, fail_on_null_result=True):
         """
@@ -20,37 +21,53 @@ class JwtSecurity(Decorator, ABC):
         self.on_fail = on_fail
 
     @staticmethod
-    def secret():
-        return JwtSecurity._SECRET
+    def access_key() -> KeyPair:
+        return JwtSecurity.access_key
 
     @staticmethod
-    def set_secret(secret):
-        JwtSecurity._SECRET = secret
+    def refresh_key() -> KeyPair:
+        return JwtSecurity.refresh_key
 
     @staticmethod
-    def public():
-        return JwtSecurity._PUBLIC
+    def set_access_key(key: KeyPair):
+        JwtSecurity.access_key = key
 
     @staticmethod
-    def set_public(public):
-        JwtSecurity._PUBLIC = public
+    def set_refresh_key(key: KeyPair):
+        JwtSecurity.refresh_key = key
 
     @staticmethod
-    def decode_token(token):
+    def _decode_token(token: str, key: KeyPair):
         try:
-            return jwt.decode(token, JwtSecurity.public(), algorithms=["RS256"])
+            return jwt.decode(token, key.public, algorithms=["RS256"])
         except:
             return None
 
     @staticmethod
-    def decode_request(request):
-        return JwtSecurity.decode_token(request.headers["authorization"][8:]) if "authorization" in request.headers \
-                                                                                 and len(request.headers["authorization"]) > 8 else None
+    def _create_token(data, expiration_seconds: int, key: KeyPair):
+        data["exp"] = datetime.now(tz=timezone.utc).timestamp() + expiration_seconds
+        return jwt.encode(data, key.private, algorithm='RS256')
 
     @staticmethod
-    def create_token(data, expiration_seconds: int):
-        data["exp"] = datetime.now(tz=timezone.utc).timestamp() + expiration_seconds
-        return jwt.encode(data, JwtSecurity.secret(), algorithm='RS256')
+    def decode_request(request):
+        return JwtSecurity.decode_access_token(request.headers["authorization"][8:]) if "authorization" in request.headers \
+                                                                                        and len(request.headers["authorization"]) > 8 else None
+
+    @staticmethod
+    def decode_refresh_token(token: str):
+        return JwtSecurity._decode_token(token, JwtSecurity.refresh_key)
+
+    @staticmethod
+    def decode_access_token(token: str):
+        return JwtSecurity._decode_token(token, JwtSecurity.access_key)
+
+    @staticmethod
+    def create_refresh_token(data, expiration_seconds: int):
+        return JwtSecurity._create_token(data, expiration_seconds, JwtSecurity.refresh_key)
+
+    @staticmethod
+    def create_access_token(data, expiration_seconds: int):
+        return JwtSecurity._create_token(data, expiration_seconds, JwtSecurity.access_key)
 
 
 class JwtTokenFactory(JwtSecurity, ABC):
@@ -67,7 +84,7 @@ class JwtTokenFactory(JwtSecurity, ABC):
         if not authentication_result:
             return False, None, authentication_data
 
-        return True, JwtSecurity.create_token(self.token_data_builder(request, request_body, builder_data), self.expiration_time), authentication_data
+        return True, JwtSecurity.create_access_token(self.token_data_builder(request, request_body, builder_data), self.expiration_time), authentication_data
 
     def token_data_builder(self, request, request_body, data):
         raise NotImplementedError(f"Must implement token data builder for {type(self)}!")
