@@ -78,25 +78,18 @@ class HttpClient:
             response_data = response.data()
             self.send(response_data)
 
-            if 'keep-alive' in request.headers:
-                keep_alive = HttpClient.parse_header_for_parameters(request.headers['keep-alive'])
-
-                if not self.in_session:
-                    timeout: int
-                    try:
-                        timeout = int(keep_alive['timeout']) if 'timeout' in keep_alive else self.default_keep_alive_timeout
-                    except:
-                        timeout = self.default_keep_alive_timeout
-
-                    self.keep_alive_timer = RestartableTimer(timeout, self.keep_alive_timeout)
-                    self.keep_alive_timer.run()
-                    self.in_session = True
-
             if 'connection' in request.headers:
                 connection = request.headers['connection'].lower().strip()
                 if connection == 'keep-alive' and not self.in_session:
-                    print('started session')
-                    self.keep_alive_timer = RestartableTimer(self.default_keep_alive_timeout, self.keep_alive_timeout)
+                    timeout = self.default_keep_alive_timeout
+                    if 'keep-alive' in request.headers:
+                        keep_alive = HttpClient.parse_header_for_parameters(request.headers['keep-alive'])
+                        try:
+                            timeout = int(keep_alive['timeout']) if 'timeout' in keep_alive else self.default_keep_alive_timeout
+                        except:
+                            timeout = self.default_keep_alive_timeout
+
+                    self.keep_alive_timer = RestartableTimer(timeout, self.keep_alive_timeout)
                     self.keep_alive_timer.run()
                     self.in_session = True
 
@@ -120,6 +113,8 @@ class HttpClient:
                 cursor += 1
                 while cursor < len(header) and header[cursor] == ' ':
                     cursor += 1
+                current_parameter_name = ""
+                continue
             elif current_parameter_name not in parameters:
                 current_parameter_name += curr
             elif current_parameter_name in parameters:
@@ -133,4 +128,3 @@ class HttpClient:
         self.keep_alive_timer.cancel()
         self.keep_alive_timer = None
         self.close()
-
