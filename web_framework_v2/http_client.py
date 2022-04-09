@@ -1,9 +1,10 @@
 import logging
 import socket
 import threading
-import time
+from typing import Optional
 
 from web_framework_v2.parser import RequestParser
+from web_framework_v2.restartable_timer import RestartableTimer
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,10 @@ class HttpClient:
         self.is_closed = False
         self.response_handler_thread = threading.Thread(target=self.request_handler)
         self.byte_fetch_amount = 1024 * 8
+        self.default_keep_alive_timeout = 10
+        self.keep_alive_timer: Optional[RestartableTimer] = None
+        self.connection_count = 0
+        self.in_session = False
 
     def start(self):
         self.response_handler_thread.start()
@@ -32,33 +37,100 @@ class HttpClient:
     def request_handler(self):
         while not self.is_closed:
             data: bytes = self.socket.recv(self.byte_fetch_amount)
-            curr_data_buffer = data
-            last_bytes = False
-            while len(curr_data_buffer) == self.byte_fetch_amount and not last_bytes:
-                last_bytes = len(self.socket.recv(self.byte_fetch_amount + 1,
-                                                  socket.MSG_PEEK)) <= self.byte_fetch_amount  # prevent blocking if cycle equals fetch amount
-                curr_data_buffer = self.socket.recv(self.byte_fetch_amount)
-                data += curr_data_buffer
+            if data == '':  # received FIN close socket.
+                return self.close()
 
-            if len(data) > 0:
-                request = RequestParser(data).parse()
-                missingData = int(request.headers.get("content-length", 0)) - len(request.body)
-                missingCounter = missingData
-                while missingCounter > 0:
-                    fetch_amount = max(0, min(self.byte_fetch_amount, missingCounter))
-                    fetched_data = self.socket.recv(fetch_amount)
-                    data += fetched_data
-                    missingCounter -= len(fetched_data)
+            if self.keep_alive_timer is not None:
+                self.keep_alive_timer.reset()
 
-                if missingData > 0:
-                    request = RequestParser(data).parse()
+            request_parser: RequestParser
+            split_at_2crlf = data.split(b'\r\n\r\n')
+            self.connection_count += 1
 
-                logger.debug(f"Finished building request object {request}")
-                response = self.response_builder(request)
-                logger.debug(f"Finished building response object {response}")
-                response_data = response.data()
-                self.send(response_data)
-                self.socket.shutdown(socket.SHUT_WR)  # wait for fin
-                self.socket.recv(1)  # receive fin
-                time.sleep(0.01)  # timeout just in case
+            while len(split_at_2crlf) != 2:
+                fetched = self.socket.recv(self.byte_fetch_amount)
+                if fetched == '':  # received FIN close socket.
+                    return self.close()
+
+                data += fetched
+                split_at_2crlf = fetched.split(b'\r\n\r\n')
+
+            request_parser = RequestParser(data)
+            request = request_parser.parse()
+            body_data = split_at_2crlf[1]
+
+            missingData = int(request.headers.get("content-length", 0)) - len(request.body) - len(body_data)
+            missingCounter = missingData
+            while missingCounter > 0:
+                fetch_amount = max(0, min(self.byte_fetch_amount, missingCounter))
+                fetched_data = self.socket.recv(fetch_amount)
+                if fetched_data == '':  # received FIN close socket.
+                    return self.close()
+
+                body_data += fetched_data
+                missingCounter -= len(fetched_data)
+
+            request.body = body_data
+
+            logger.debug(f"Finished building request object {request}")
+            response = self.response_builder(request)
+            logger.debug(f"Finished building response object {response}")
+            response_data = response.data()
+            self.send(response_data)
+
+            if 'keep-alive' in request.headers:
+                keep_alive = HttpClient.parse_header_for_parameters(request.headers['keep-alive'])
+
+                if not self.in_session:
+                    timeout: int
+                    try:
+                        timeout = int(keep_alive['timeout']) if 'timeout' in keep_alive else self.default_keep_alive_timeout
+                    except:
+                        timeout = self.default_keep_alive_timeout
+
+                    self.keep_alive_timer = RestartableTimer(timeout, self.keep_alive_timeout)
+                    self.keep_alive_timer.run()
+                    self.in_session = True
+
+            if 'connection' in request.headers:
+                connection = request.headers['connection'].lower().strip()
+                if connection == 'keep-alive' and not self.in_session:
+                    print('started session')
+                    self.keep_alive_timer = RestartableTimer(self.default_keep_alive_timeout, self.keep_alive_timeout)
+                    self.keep_alive_timer.run()
+                    self.in_session = True
+
+            if self.in_session:
+                continue
+
             self.close()
+
+    @staticmethod
+    def parse_header_for_parameters(header) -> dict:
+        cursor = 0
+        parameters = {}
+
+        current_parameter_name = ""
+        while cursor < len(header):
+            curr = header[cursor]
+
+            if curr == '=':
+                parameters[current_parameter_name] = ""
+            elif curr == ',':
+                cursor += 1
+                while cursor < len(header) and header[cursor] == ' ':
+                    cursor += 1
+            elif current_parameter_name not in parameters:
+                current_parameter_name += curr
+            elif current_parameter_name in parameters:
+                parameters[current_parameter_name] += curr
+
+            cursor += 1
+
+        return parameters
+
+    def keep_alive_timeout(self):
+        self.keep_alive_timer.cancel()
+        self.keep_alive_timer = None
+        self.close()
+
